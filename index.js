@@ -2,7 +2,6 @@
 
 const path = require('path');
 const resolve = require('resolve');
-const version = require('./package.json').version;
 const { MergeTrees } = require('broccoli-merge-trees');
 const writeFile = require('broccoli-file-creator');
 const Funnel = require('broccoli-funnel');
@@ -407,7 +406,6 @@ module.exports = {
 
     this.emberPaperOptions = Object.assign({}, app.options['ember-paper']);
 
-    app.import('vendor/ember-paper/register-version.js');
     app.import('vendor/hammerjs/hammer.js');
     app.import('vendor/propagating-hammerjs/propagating.js');
   },
@@ -462,11 +460,6 @@ module.exports = {
   treeForVendor(tree) {
     let trees = [];
 
-    let versionTree = writeFile(
-      'ember-paper/register-version.js',
-      `Ember.libraries.register('Ember Paper', '${version}');`
-    );
-
     let hammerJs = fastbootTransform(new Funnel(this.pathBase('hammerjs'), {
       files: ['hammer.js'],
       destDir: 'hammerjs'
@@ -477,7 +470,7 @@ module.exports = {
       destDir: 'propagating-hammerjs'
     }));
 
-    trees = trees.concat([hammerJs, propagatingHammerJs, versionTree]);
+    trees = trees.concat([hammerJs, propagatingHammerJs]);
 
     if (tree) {
       trees.push(tree);
@@ -489,8 +482,10 @@ module.exports = {
   treeForStyles(tree) {
     let coreScssFiles = [
       // core styles
-      'core/style/mixins.scss',
-      'core/style/variables.scss',
+      'core/style/_modules.scss',
+      'core/style/_variables.scss',
+      'components/input/_input-variables.scss',
+      'core/style/_mixins.scss',
       'core/style/structure.scss',
       'core/style/typography.scss',
       'core/style/layout.scss',
@@ -509,7 +504,7 @@ module.exports = {
 
     let filteredScssFiles = this.addStyles(coreScssFiles) || coreScssFiles;
 
-    let angularScssFiles = new Funnel(this.pathBase('angular-material-styles'), {
+    let angularScssFiles = new Funnel(this.pathBase('angular-material'), {
       files: filteredScssFiles,
       srcDir: '/src',
       destDir: 'angular-material',
